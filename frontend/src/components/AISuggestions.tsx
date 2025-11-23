@@ -1,5 +1,6 @@
-import { Sparkles, Lightbulb, CheckCircle2, AlertCircle, MessageSquare, Send } from "lucide-react";
-import { useState } from "react";
+import { Sparkles, Lightbulb, CheckCircle2, AlertCircle, MessageSquare, Send, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useDashboard } from "../context/DashboardContext";
 
 interface Suggestion {
   title: string;
@@ -16,65 +17,47 @@ interface ChatMessage {
 }
 
 export function AISuggestions() {
+  const { currentEntityId, currentRecord } = useDashboard();
   const [activeTab, setActiveTab] = useState<"recommendations" | "chat">("recommendations");
   const [chatInput, setChatInput] = useState("");
-
-  // Static chat messages for demo
-  const [chatMessages] = useState<ChatMessage[]>([
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
       content: "Hello! I'm your AI sustainability advisor. I can help you understand your emissions data, suggest improvement strategies, and answer questions about your sustainability goals. How can I assist you today?",
-      timestamp: "10:30 AM"
-    },
-    {
-      role: "user",
-      content: "What are the main contributors to our Scope 1 emissions?",
-      timestamp: "10:32 AM"
-    },
-    {
-      role: "assistant",
-      content: "Based on your current data, your Scope 1 emissions (12,500 tCO₂e) primarily come from three sources:\n\n1. Manufacturing processes (7,200 tCO₂e - 58%)\n2. Fleet & logistics (3,100 tCO₂e - 25%)\n3. On-site heating systems (2,200 tCO₂e - 17%)\n\nYour manufacturing processes are the largest contributor. Would you like specific recommendations for reducing emissions in this area?",
-      timestamp: "10:32 AM"
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+  const [loadingChat, setLoadingChat] = useState(false);
 
-  const suggestions: Suggestion[] = [
-    {
-      title: "Transition to Renewable Energy Sources",
-      description: "Your Scope 2 emissions are 34% above industry average. Switching to renewable energy contracts or installing on-site solar could significantly reduce your carbon footprint.",
-      impact: "high",
-      category: "Energy",
-      estimatedReduction: "-2,800 tCO₂e/year"
-    },
-    {
-      title: "Optimize Manufacturing Process Efficiency",
-      description: "Analysis suggests potential inefficiencies in your manufacturing processes. Implementing lean manufacturing principles and upgrading equipment could reduce direct emissions.",
-      impact: "high",
-      category: "Operations",
-      estimatedReduction: "-1,500 tCO₂e/year"
-    },
-    {
-      title: "Implement Energy Management System (ISO 50001)",
-      description: "Companies with certified energy management systems show 15-20% better emission performance. This would improve your environmental score and reduce operational costs.",
-      impact: "medium",
-      category: "Governance",
-      estimatedReduction: "-900 tCO₂e/year"
-    },
-    {
-      title: "Fleet Electrification Initiative",
-      description: "Your logistics operations contribute significantly to Scope 1 emissions. Transitioning company vehicles to electric or hybrid models would demonstrate environmental commitment.",
-      impact: "medium",
-      category: "Transport",
-      estimatedReduction: "-600 tCO₂e/year"
-    },
-    {
-      title: "Supply Chain Carbon Assessment",
-      description: "Engaging with suppliers to track and reduce their emissions would position you as an industry leader and improve your overall sustainability score.",
-      impact: "low",
-      category: "Supply Chain",
-      estimatedReduction: "-400 tCO₂e/year"
-    }
-  ];
+  // Fetch recommendations when entity changes
+  useEffect(() => {
+    if (!currentEntityId) return;
+    
+    setLoadingRecommendations(true);
+    fetch(`http://localhost:8000/ai/recommendations/${currentEntityId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setSuggestions(data.recommendations || []);
+        setLoadingRecommendations(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching recommendations:", err);
+        setLoadingRecommendations(false);
+      });
+  }, [currentEntityId]);
+
+  // Reset chat when entity changes
+  useEffect(() => {
+    setChatMessages([
+      {
+        role: "assistant",
+        content: "Hello! I'm your AI sustainability advisor. I can help you understand your emissions data, suggest improvement strategies, and answer questions about your sustainability goals. How can I assist you today?",
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }
+    ]);
+  }, [currentEntityId]);
 
   const getImpactColor = (impact: string) => {
     switch (impact) {
@@ -89,11 +72,62 @@ export function AISuggestions() {
     }
   };
 
-  const handleSendMessage = () => {
-    // Placeholder for future chat logic
-    if (chatInput.trim()) {
-      console.log("Message sent:", chatInput);
-      setChatInput("");
+  const handleSendMessage = async () => {
+    if (!chatInput.trim() || !currentEntityId || loadingChat) return;
+
+    const userMessage = chatInput.trim();
+    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    // Add user message to chat
+    const newUserMessage: ChatMessage = {
+      role: "user",
+      content: userMessage,
+      timestamp
+    };
+    setChatMessages((prev) => [...prev, newUserMessage]);
+    setChatInput("");
+    setLoadingChat(true);
+
+    // Prepare conversation history for API
+    const conversationHistory = chatMessages.map((msg) => ({
+      role: msg.role,
+      content: msg.content
+    }));
+
+    try {
+      const response = await fetch("http://localhost:8000/ai/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          entity_id: currentEntityId,
+          message: userMessage,
+          conversation_history: conversationHistory,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to get response");
+      }
+
+      const data = await response.json();
+      const assistantMessage: ChatMessage = {
+        role: "assistant",
+        content: data.response,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setChatMessages((prev) => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      const errorMessage: ChatMessage = {
+        role: "assistant",
+        content: "I'm sorry, I encountered an error processing your request. Please try again.",
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setChatMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setLoadingChat(false);
     }
   };
 
@@ -146,8 +180,18 @@ export function AISuggestions() {
       {/* Recommendations Tab Content */}
       {activeTab === "recommendations" && (
         <div className="p-6">
-          <div className="space-y-4">
-            {suggestions.map((suggestion, index) => (
+          {loadingRecommendations ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 text-violet-600 animate-spin" />
+              <span className="ml-3 text-slate-600">Loading AI recommendations...</span>
+            </div>
+          ) : suggestions.length === 0 ? (
+            <div className="text-center py-12 text-slate-500">
+              No recommendations available at this time.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {suggestions.map((suggestion, index) => (
               <div
                 key={index}
                 className="group border border-slate-200 rounded-lg p-5 hover:border-violet-300 hover:shadow-md transition-all duration-200"
@@ -185,8 +229,9 @@ export function AISuggestions() {
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -218,6 +263,16 @@ export function AISuggestions() {
                 </div>
               </div>
             ))}
+            {loadingChat && (
+              <div className="flex justify-start">
+                <div className="bg-slate-100 text-slate-900 rounded-lg rounded-tl-sm px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-slate-500" />
+                    <span className="text-sm text-slate-500">Thinking...</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Chat Input */}
@@ -233,15 +288,22 @@ export function AISuggestions() {
               />
               <button
                 onClick={handleSendMessage}
-                className="px-6 py-3 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors flex items-center gap-2"
+                disabled={loadingChat || !chatInput.trim() || !currentEntityId}
+                className="px-6 py-3 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Send className="w-4 h-4" />
+                {loadingChat ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
                 <span>Send</span>
               </button>
             </div>
-            <p className="text-slate-400 text-xs mt-2">
-              This is a demo interface. Chat functionality will be implemented soon.
-            </p>
+            {!currentEntityId && (
+              <p className="text-slate-400 text-xs mt-2">
+                Please select an entity to start chatting.
+              </p>
+            )}
           </div>
         </div>
       )}

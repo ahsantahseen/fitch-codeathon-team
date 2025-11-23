@@ -3,10 +3,8 @@ import { createContext, useState, useContext, ReactNode, useEffect, React} from 
 
 interface CompanyRecord {
   entity_id: number;
-  country_code: string;
-  country_name: string;
-  region_code: string;
   region_name: string;
+  country_name: string;
   revenue: number;
   overall_score: number;
   environmental_score: number;
@@ -14,6 +12,11 @@ interface CompanyRecord {
   governance_score: number;
   target_scope_1: number;
   target_scope_2: number;
+  nace_level_1_name?: string;
+  nace_level_2_name?: string;
+  revenue_pct?: number;
+  activity_type?: string;
+  env_score_adjustment?: string;
 }
 
 interface DashboardContextType {
@@ -28,10 +31,8 @@ interface DashboardContextType {
 
 const dummyRecord: CompanyRecord = {
   entity_id: 0,
-  country_code: "",
-  country_name: "",
-  region_code: "",
   region_name: "",
+  country_name: "",
   revenue: 0,
   overall_score: 0,
   environmental_score: 0,
