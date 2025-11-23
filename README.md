@@ -42,14 +42,11 @@ venv\Scripts\activate
 
 ### 3. Install dependencies
 
-```bash
-pip install fastapi uvicorn pandas
-```
-
-Or install from the root requirements.txt:
+Install from the root requirements.txt:
 
 ```bash
 # From project root
+cd ..
 pip install -r requirements.txt
 ```
 
