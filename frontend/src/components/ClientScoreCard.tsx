@@ -1,31 +1,32 @@
 import React from "react";
 import { TrendingDown, TrendingUp, Award } from "lucide-react";
-import { useEffect, useState} from "react";
-import { ENTITY_IDS } from "../constants/entityIds";
+import { useDashboard } from "../context/DashboardContext";
 
 export function ClientScoreCard() {
-  const clientScore = 3.4;
-  const clientPercentile = 62;
-  const previousScore = 3.7;
-  const scoreChange = clientScore - previousScore;
+  const { currentRecord, currentEntityId, comparisonRecords, loading } = useDashboard();
+
+  // Calculate percentile based on comparison records
+  const calculatePercentile = () => {
+    if (!currentRecord || comparisonRecords.length === 0) return 50;
+    const worseCount = comparisonRecords.filter(
+      (record) => record.overall_score > currentRecord.overall_score
+    ).length;
+    return Math.round((worseCount / comparisonRecords.length) * 100);
+  };
+
+  const clientScore = currentRecord?.overall_score || 0;
+  const clientPercentile = calculatePercentile();
+  // For now, we don't have previous score data, so we'll skip the trend
+  // You can add this later if you have historical data
+  const scoreChange = 0;
   const isImproving = scoreChange < 0; // Lower score is better (1-5 scale)
-  const [currentEntityId, setCurrentEntityId] = useState(ENTITY_IDS[0] || null);
-  const [entityIds, setEntityIds] = useState<number[]>(ENTITY_IDS);
 
-  useEffect(() => {
-    fetch("http://localhost:8000/entity_ids")
-    .then((response) => response.json())
-    .then((data) => {
-      setEntityIds(data.entity_ids);
-      setCurrentEntityId(data.entity_ids[0] || null);
-    })
-    .catch((error) => {
-      console.error("Error fetching entity IDs:", error);
-    })
-  }, []);
-
-  const handleEntityChange = async () => {
-    
+  if (loading || !currentRecord) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 h-full flex items-center justify-center">
+        <p className="text-slate-500">Loading...</p>
+      </div>
+    );
   }
 
   return (
@@ -36,7 +37,7 @@ export function ClientScoreCard() {
         </div>
         <div>
           <h2 className="text-slate-900">Client Overview</h2>
-          <p className="text-slate-500 text-sm">Entity ID: {1782}</p>
+          <p className="text-slate-500 text-sm">Entity ID: {currentEntityId || "N/A"}</p>
         </div>
       </div>
 
@@ -44,16 +45,18 @@ export function ClientScoreCard() {
       <div className="mb-6">
         <div className="flex items-baseline justify-between mb-2">
           <span className="text-slate-600 text-sm">Overall Sustainability Score</span>
-          <div className="flex items-center gap-1">
-            {isImproving ? (
-              <TrendingDown className="w-4 h-4 text-emerald-600" />
-            ) : (
-              <TrendingUp className="w-4 h-4 text-amber-600" />
-            )}
-            <span className={`text-sm ${isImproving ? "text-emerald-600" : "text-amber-600"}`}>
-              {Math.abs(scoreChange).toFixed(1)}
-            </span>
-          </div>
+          {scoreChange !== 0 && (
+            <div className="flex items-center gap-1">
+              {isImproving ? (
+                <TrendingDown className="w-4 h-4 text-emerald-600" />
+              ) : (
+                <TrendingUp className="w-4 h-4 text-amber-600" />
+              )}
+              <span className={`text-sm ${isImproving ? "text-emerald-600" : "text-amber-600"}`}>
+                {Math.abs(scoreChange).toFixed(1)}
+              </span>
+            </div>
+          )}
         </div>
         <div className="flex items-end gap-2">
           <span className="text-slate-900" style={{ fontSize: '2.5rem', lineHeight: '1' }}>
@@ -92,28 +95,37 @@ export function ClientScoreCard() {
         <div>
           <div className="flex justify-between text-sm mb-1">
             <span className="text-slate-600">Environmental</span>
-            <span className="text-slate-900">3.2</span>
+            <span className="text-slate-900">{currentRecord.environmental_score.toFixed(1)}</span>
           </div>
           <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-            <div className="h-full bg-emerald-500 rounded-full" style={{ width: '64%' }} />
+            <div 
+              className="h-full bg-emerald-500 rounded-full" 
+              style={{ width: `${(currentRecord.environmental_score / 5) * 100}%` }} 
+            />
           </div>
         </div>
         <div>
           <div className="flex justify-between text-sm mb-1">
             <span className="text-slate-600">Social</span>
-            <span className="text-slate-900">3.5</span>
+            <span className="text-slate-900">{currentRecord.social_score.toFixed(1)}</span>
           </div>
           <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-            <div className="h-full bg-blue-500 rounded-full" style={{ width: '70%' }} />
+            <div 
+              className="h-full bg-blue-500 rounded-full" 
+              style={{ width: `${(currentRecord.social_score / 5) * 100}%` }} 
+            />
           </div>
         </div>
         <div>
           <div className="flex justify-between text-sm mb-1">
             <span className="text-slate-600">Governance</span>
-            <span className="text-slate-900">3.6</span>
+            <span className="text-slate-900">{currentRecord.governance_score.toFixed(1)}</span>
           </div>
           <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-            <div className="h-full bg-purple-500 rounded-full" style={{ width: '72%' }} />
+            <div 
+              className="h-full bg-purple-500 rounded-full" 
+              style={{ width: `${(currentRecord.governance_score / 5) * 100}%` }} 
+            />
           </div>
         </div>
       </div>
