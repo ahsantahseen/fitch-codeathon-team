@@ -8,7 +8,7 @@ fitch-codeathon-team/
 │   └── main.py       # API endpoints
 ├── frontend/         # React + TypeScript frontend
 │   └── src/          # Source code
-├── data/             # CSV data files
+├── data/             # CSV data files and ML model(s)
 │   └── train.csv     # Main dataset
 └── README.md         # This file
 ```
