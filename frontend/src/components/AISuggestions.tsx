@@ -142,7 +142,7 @@ export function AISuggestions() {
             <div>
               <h2 className="text-slate-900">AI-Powered Recommendations</h2>
               <p className="text-slate-500 text-sm">Personalized suggestions to improve your sustainability score</p>
-              <p className="text-slate-500 text-sm">(Plan was using another model to call on our model (not implemented yet, currently using data from csv files))[ Functioning PROOF OF CONCEPT]</p>
+              <p className="text-slate-500 text-sm">(Using results from our custom model; Ai Chat using another ai model)</p>
             </div>
           </div>
           <div className="flex items-center gap-2 px-3 py-1.5 bg-violet-50 border border-violet-200 rounded-lg">
