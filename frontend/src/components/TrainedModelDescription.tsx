@@ -22,7 +22,7 @@ export function TrainedModelDescription() {
           </div>
         </div>
       </div>
-      <p className="px-2.5 py-1 border rounded text-lg">
+      <p className="px-2.5 py-1 border rounded text-sm text-slate-700">
         INSERT MODEL DESCRIPTION
       </p>
     </div>
