@@ -52,11 +52,6 @@ export default function App() {
           <div className="mb-6">
             <AISuggestions />
           </div>
-         
-            <p className="text-lg">
-              Below are
-              Proof of Concepts - Possible charts created from our model!
-            </p>
           
           {/* Bottom Section - Charts */}
           <div className="space-y-6">

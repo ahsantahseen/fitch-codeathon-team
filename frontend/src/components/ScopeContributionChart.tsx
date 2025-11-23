@@ -54,7 +54,7 @@ export function ScopeContributionChart() {
           <BarChart3 className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h3 className="text-slate-900">Scope Contribution Analysis</h3>
+          <h3 className="text-slate-900">Scope Contribution Analysis (PROOF OF CONCEPT) </h3>
           <p className="text-slate-500 text-sm mt-1">Top contributing metrics for Scope 1 and Scope 2 emissions</p>
         </div>
       </div>

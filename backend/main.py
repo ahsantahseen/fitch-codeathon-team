@@ -46,7 +46,7 @@ app.add_middleware(
 )
 
 # Load dataset once at startup
-PATH_TO_CSV = "../data/final_ds.csv"
+PATH_TO_CSV = "../data/final_ds.csv" # Adjust path as needed
 df = pd.read_csv(PATH_TO_CSV)
 
 # Initialize Gemini

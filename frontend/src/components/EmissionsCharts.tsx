@@ -56,7 +56,7 @@ export function EmissionsCharts() {
           <BarChart3 className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h2 className="text-slate-900">Emissions Analytics</h2>
+          <h2 className="text-slate-900">Emissions Analytics (PROOF OF CONCEPT) </h2>
           <p className="text-slate-500 text-sm">Comprehensive view of your carbon footprint</p>
         </div>
       </div>
