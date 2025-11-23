@@ -5,6 +5,7 @@ import { EmissionsCharts } from "./components/EmissionsCharts";
 import { ScopeContributionChart } from "./components/ScopeContributionChart";
 import { DashboardProvider } from "./context/DashboardContext";
 import { EntityIdSelector } from "./components/EntityIdSelector";
+import { TrainedModelDescription } from "./components/TrainedModelDescription";
 
 export default function App() {
   return (
@@ -44,12 +45,19 @@ export default function App() {
               <IndustryComparisonTable />
             </div>
           </div>
-
+          <div className="mb-6">
+            <TrainedModelDescription/>
+          </div>
           {/* Middle Section - AI Suggestions */}
           <div className="mb-6">
             <AISuggestions />
           </div>
-
+         
+            <p className="text-lg">
+              Below are
+              Proof of Concepts - Possible charts created from our model!
+            </p>
+          
           {/* Bottom Section - Charts */}
           <div className="space-y-6">
             <ScopeContributionChart />
