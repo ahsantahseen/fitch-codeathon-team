@@ -123,6 +123,16 @@ def get_entity_ids():
     ids = df["entity_id"].tolist()
     return {"entity_ids": ids}
 
+@app.get("/submission-data")
+def get_submission_data():
+    """Returns the submission.csv data for scatter plot visualization"""
+    submission_path = project_root / "notebooks" / "submission.csv"
+    if not submission_path.exists():
+        raise HTTPException(status_code=404, detail="Submission data not found")
+    submission_df = pd.read_csv(submission_path)
+    records = submission_df.to_dict(orient="records")
+    return {"data": clean_dict_for_json(records)}
+
 @app.get("/company/{entity_id}")
 def get_company(entity_id: int):
     # Returns the first row corresponding to the given entity_id
