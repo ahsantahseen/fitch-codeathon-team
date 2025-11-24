@@ -45,7 +45,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-#########
 # Load dataset once at startup
 PATH_TO_CSV = "../data/final_ds.csv" # Adjust path as needed
 df = pd.read_csv(PATH_TO_CSV)
@@ -208,8 +207,6 @@ Current Entity Data:
 - Activity Type: {safe_format(entity_data.get('activity_type'))}
 - Revenue Percentage: {safe_format(entity_data.get('revenue_pct'))}
 - Environmental Score Adjustment: {safe_format(entity_data.get('env_score_adjustment'))}
-
-You Also will have access to this dataset, refer to it as model prediction, which is the result from our own custom model: {safe_format(df.to_string())}
 
 Your role is to:
 1. Understand and explain the emissions data for this company

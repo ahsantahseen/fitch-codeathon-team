@@ -1,6 +1,9 @@
 import { Sparkles, Lightbulb, CheckCircle2, AlertCircle, MessageSquare, Send, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useDashboard } from "../context/DashboardContext";
+import { Card, CardContent} from "./ui/card";
+//import { BarChart, Pie } from "lucide-react"
+
 export function TrainedModelDescription() {
 
   return (
